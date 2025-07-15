@@ -68,5 +68,5 @@ Quiz Master Pro combines creativity, logic, and responsive design. It is an exce
 
 #OUTPUT
 
-![Image](https://github.com/user-attachments/assets/31d08160-308c-4a95-8359-155bac6e3c00)
 ![Image](https://github.com/user-attachments/assets/18f57dd1-052f-4af3-b47d-29d58e451f38)
+![Image](https://github.com/user-attachments/assets/31d08160-308c-4a95-8359-155bac6e3c00)
