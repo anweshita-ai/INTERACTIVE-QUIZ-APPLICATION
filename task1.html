@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Master Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #e1f5fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    .quiz-container {
+      background-color: #ffffff;
+      border-radius: 20px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 700px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      animation: fadeInUp 0.6s ease-in-out;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h1, h2 {
+      text-align: center;
+      color: #4db6ac;
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border-radius: 10px;
+      border: 1px solid #b2dfdb;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    input:focus, select:focus, button:focus {
+      outline: none;
+      border-color: #4dd0e1;
+      box-shadow: 0 0 8px rgba(77, 208, 225, 0.5);
+    }
+    .btn-container {
+      text-align: center;
+    }
+    .next-btn, .restart-btn {
+      background-color: #81d4fa;
+      color: white;
+      border: none;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .next-btn:hover, .restart-btn:hover {
+      background-color: #4fc3f7;
+    }
+    .question {
+      font-size: 1.2rem;
+      margin: 1rem 0;
+      color: #00796b;
+      transition: all 0.4s ease;
+    }
+    .answers button {
+      background: #e0f2f1;
+      border: 1px solid #b2dfdb;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .answers button:hover {
+      background: #b2ebf2;
+      transform: scale(1.03);
+    }
+    .correct {
+      background-color: #a5d6a7 !important;
+      color: #1b5e20;
+    }
+    .wrong {
+      background-color: #ef9a9a !important;
+      color: #b71c1c;
+    }
+    .timer {
+      text-align: center;
+      font-weight: bold;
+      margin: 1rem 0;
+      color: #ff6f61;
+      font-size: 1.2rem;
+      transition: color 0.3s ease;
+    }
+    ol {
+      padding-left: 1.2rem;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>Quiz Master Pro</h1>
+    <div id="start-screen">
+      <input id="username" placeholder="Enter your name" />
+      <label for="category">Select Category:</label>
+      <select id="category">
+        <option value="tech">Technology</option>
+        <option value="logic">Logic</option>
+        <option value="gk">General Knowledge</option>
+        <option value="science">Science</option>
+      </select>
+      <label for="difficulty">Select Difficulty:</label>
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="start-btn">Start Quiz</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+      <div class="timer" id="timer">15</div>
+      <div class="question" id="question"></div>
+      <div class="answers" id="answer-buttons"></div>
+      <div class="btn-container">
+        <button id="next-btn" class="next-btn hidden">Next</button>
+      </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+      <div class="score-display" id="score-display"></div>
+      <h2>🏆 Leaderboard</h2>
+      <ol id="leaderboard"></ol>
+      <button id="restart-btn" class="restart-btn">Restart Quiz</button>
+    </div>
+  </div>
+
+  <audio id="correct-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_f7e75d2c43.mp3"></audio>
+  <audio id="wrong-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_1f1dfadc5b.mp3"></audio>
+
+  <script>
+    const allQuestions = {
+      tech: [
+        { q: "What does HTML stand for?", a: ["HyperText Markup Language", "HighText Markdown Language", "Hyperloop Machine Language", "None"], correct: 0 },
+        { q: "What does CSS stand for?", a: ["Central Style Sheets", "Cascading Style Sheets", "Computer Style Sheet", "Creative Styling Source"], correct: 1 },
+        { q: "Which is not a JavaScript framework?", a: ["React", "Vue", "Laravel", "Angular"], correct: 2 }
+      ],
+      logic: [
+        { q: "Which number comes next: 2, 4, 8, 16, ?", a: ["20", "24", "32", "18"], correct: 2 },
+        { q: "If A=1, B=2, then Z=?", a: ["24", "26", "22", "25"], correct: 1 }
+      ],
+      gk: [
+        { q: "What is the capital of Australia?", a: ["Sydney", "Canberra", "Melbourne", "Brisbane"], correct: 1 },
+        { q: "Which planet is known as the Red Planet?", a: ["Venus", "Mars", "Jupiter", "Mercury"], correct: 1 }
+      ],
+      science: [
+        { q: "What gas do plants absorb from the atmosphere?", a: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Hydrogen"], correct: 1 },
+        { q: "What part of the cell contains DNA?", a: ["Cytoplasm", "Ribosome", "Nucleus", "Membrane"], correct: 2 }
+      ]
+    };
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 15;
+
+    const username = document.getElementById('username');
+    const startBtn = document.getElementById('start-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const timerEl = document.getElementById('timer');
+    const questionEl = document.getElementById('question');
+    const answersEl = document.getElementById('answer-buttons');
+    const scoreDisplay = document.getElementById('score-display');
+    const leaderboardEl = document.getElementById('leaderboard');
+
+    startBtn.onclick = () => {
+      const name = username.value.trim();
+      const category = document.getElementById('category').value;
+      if (!name) return alert('Please enter your name');
+      currentQuestions = [...allQuestions[category]];
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      showQuestion();
+    };
+
+    function showQuestion() {
+      resetState();
+      const q = currentQuestions[currentIndex];
+      questionEl.textContent = q.q;
+      q.a.forEach((answer, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.textContent = answer;
+        btn.onclick = () => checkAnswer(i);
+        answersEl.appendChild(btn);
+      });
+      startTimer();
+    }
+
+    function resetState() {
+      clearInterval(timer);
+      timeLeft = 15;
+      timerEl.textContent = `Time: ${timeLeft}`;
+      answersEl.innerHTML = '';
+      nextBtn.classList.add('hidden');
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `Time: ${timeLeft}`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          checkAnswer(-1);
+        }
+      }, 1000);
+    }
+
+    function checkAnswer(selected) {
+      clearInterval(timer);
+      const correct = currentQuestions[currentIndex].correct;
+      const buttons = answersEl.querySelectorAll('button');
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === correct) btn.classList.add('correct');
+        if (idx === selected && idx !== correct) btn.classList.add('wrong');
+      });
+      if (selected === correct) {
+        score++;
+        document.getElementById('correct-sound').play();
+      } else {
+        document.getElementById('wrong-sound').play();
+      }
+      nextBtn.classList.remove('hidden');
+    }
+
+    nextBtn.onclick = () => {
+      currentIndex++;
+      if (currentIndex < currentQuestions.length) {
+        showQuestion();
+      } else {
+        endQuiz();
+      }
+    };
+
+    function endQuiz() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+      scoreDisplay.textContent = `${username.value}, your score is ${score} / ${currentQuestions.length}`;
+      saveToLeaderboard(username.value, score);
+      loadLeaderboard();
+    }
+
+    function saveToLeaderboard(name, score) {
+      const data = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+      data.push({ name, score });
+      data.sort((a, b) => b.score - a.score);
+      localStorage.setItem('leaderboard', JSON.stringify(data.slice(0, 5)));
+    }
+
+    function loadLeaderboard() {
+      const data = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+      leaderboardEl.innerHTML = '';
+      data.forEach((entry, i) => {
+        leaderboardEl.innerHTML += `<li>#${i + 1} - ${entry.name}: ${entry.score}</li>`;
+      });
+    }
+
+    restartBtn.onclick = () => location.reload();
+  </script>
+</body>
+</html>
